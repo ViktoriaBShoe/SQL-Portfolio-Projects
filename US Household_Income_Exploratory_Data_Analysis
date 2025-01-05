@@ -1,0 +1,121 @@
+# US Household Income Exploratory Data Analysis
+
+# 1. Exploring the ALand and AWater data
+
+SELECT State_Name, SUM(ALand), SUM(AWater) 
+FROM USHouseholdIncome
+GROUP BY State_Name
+ORDER BY 2 DESC
+LIMIT 10
+;
+
+SELECT State_Name, SUM(ALand), SUM(AWater) 
+FROM USHouseholdIncome
+GROUP BY State_Name
+ORDER BY 3 DESC
+LIMIT 10
+;
+
+# 2. Exploring the income data
+
+SELECT *
+FROM USHouseholdIncome u
+JOIN ushouseholdincome_statistics us
+	ON u.id = us.id
+WHERE Mean <> 0
+;
+
+SELECT u.State_name, County, Type, `Primary`, Mean, Median
+FROM USHouseholdIncome u
+JOIN ushouseholdincome_statistics us
+	ON u.id = us.id
+WHERE Mean <> 0
+;
+
+# Looking for the states with the lowest and highest average income per household
+
+SELECT u.State_name, ROUND(AVG(Mean),1), ROUND(AVG(Median),1)
+FROM USHouseholdIncome u
+JOIN ushouseholdincome_statistics us
+	ON u.id = us.id
+WHERE Mean <> 0
+GROUP BY u.State_name
+ORDER BY 2
+LIMIT 10
+;
+
+SELECT u.State_name, ROUND(AVG(Mean),1), ROUND(AVG(Median),1)
+FROM USHouseholdIncome u
+JOIN ushouseholdincome_statistics us
+	ON u.id = us.id
+WHERE Mean <> 0
+GROUP BY u.State_name
+ORDER BY 2 DESC
+LIMIT 10
+;
+
+# Looking for the states with the median income
+
+SELECT u.State_name, ROUND(AVG(Mean),1), ROUND(AVG(Median),1)
+FROM USHouseholdIncome u
+JOIN ushouseholdincome_statistics us
+	ON u.id = us.id
+WHERE Mean <> 0
+GROUP BY u.State_name
+ORDER BY 3
+LIMIT 10
+;
+
+SELECT u.State_name, ROUND(AVG(Mean),1), ROUND(AVG(Median),1)
+FROM USHouseholdIncome u
+JOIN ushouseholdincome_statistics us
+	ON u.id = us.id
+WHERE Mean <> 0
+GROUP BY u.State_name
+ORDER BY 3 DESC
+LIMIT 10
+;
+
+# Exploring the correlation between the mean and median incomes versus the location types
+
+SELECT Type, COUNT(Type), ROUND(AVG(Mean),1), ROUND(AVG(Median),1)
+FROM USHouseholdIncome u
+JOIN ushouseholdincome_statistics us
+	ON u.id = us.id
+WHERE Mean <> 0
+GROUP BY Type
+ORDER BY 4 DESC
+;
+# Some locations data is too small to be considered for the analysis
+# The 'Municipality' is only entered 1 time
+# The 'CPD' and "County' are only entered 2 times
+# The 'Urban' is only entered 8 times
+
+SELECT *
+FROM USHouseholdIncome
+WHERE Type = 'Community'
+;
+# The output shows that all of the reported communities are under Puerto Rico. 
+# That is why the above output showed much lower than avarage incomes for the community type location
+
+# Limiting the results only to the locations that are entered into the dataset at least 100 times
+
+SELECT Type, COUNT(Type), ROUND(AVG(Mean),1), ROUND(AVG(Median),1)
+FROM USHouseholdIncome u
+JOIN ushouseholdincome_statistics us
+	ON u.id = us.id
+WHERE Mean <> 0
+GROUP BY 1
+HAVING COUNT(Type) > 100
+ORDER BY 4 DESC
+;
+
+# 3. Exploring the income on the city level
+
+SELECT u.State_Name, City, ROUND(AVG(Mean),1), ROUND(AVG(Median),1)
+FROM USHouseholdIncome u
+JOIN ushouseholdincome_statistics us
+	ON u.id = us.id
+GROUP BY  u.State_Name, City
+ORDER BY 3 DESC
+;
