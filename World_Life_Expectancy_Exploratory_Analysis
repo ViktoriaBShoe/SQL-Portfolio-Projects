@@ -1,0 +1,86 @@
+# #World Life Expectancy Project (Exploratory Data Analysis)
+
+SELECT * 
+FROM worldlifexpectancy
+;
+
+# Looking for the countries with the greatest increase in life expectancy over the 15 years of available data
+
+SELECT Country, 
+MIN(Lifeexpectancy), 
+MAX(Lifeexpectancy),
+ROUND(MAX(Lifeexpectancy) - MIN(Lifeexpectancy),1) AS Life_Increase_15_Years
+FROM worldlifexpectancy
+GROUP BY Country
+HAVING MIN(Lifeexpectancy) <> 0
+AND MAX(Lifeexpectancy) <> 0
+ORDER BY Life_Increase_15_Years DESC
+;
+
+# Life increase across all of the countries over all 15 years
+
+SELECT Year, 
+ROUND(AVG(Lifeexpectancy),2) AS Avg_Increase_15_Years
+FROM worldlifexpectancy
+WHERE Lifeexpectancy <> 0
+GROUP BY Year
+ORDER BY Year
+;
+
+# Looking for the trends between life increase and GDP by country
+
+SELECT Country, ROUND(AVG(Lifeexpectancy),1) AS Life_Exp, ROUND(AVG(GDP),1) AS GDP
+FROM worldlifexpectancy
+GROUP BY Country
+HAVING Life_Exp <>0
+AND GDP <>0
+ORDER BY GDP DESC
+;
+
+SELECT 
+SUM(CASE WHEN GDP >= 1500 THEN 1 ELSE 0 END) High_GDP_Count,
+AVG(CASE WHEN GDP >= 1500 THEN Lifeexpectancy ELSE NULL END) High_GDP_Life_Exp,
+SUM(CASE WHEN GDP <= 1500 THEN 1 ELSE 0 END) Low_GDP_Count,
+AVG(CASE WHEN GDP <= 1500 THEN Lifeexpectancy ELSE NULL END) Low_GDP_Life_Exp
+FROM worldlifexpectancy
+;
+# Discovered a high correlation from a high GDP to a high life expectancy versus low GDP to a low life expectancy
+
+
+# Looking for the trends between life increase and the status (developed or developing) by country
+
+SELECT Status, ROUND(AVG(Lifeexpectancy),1)
+FROM worldlifexpectancy
+GROUP BY Status
+;
+
+# Checking how many countries are incuded under the 'developed' and 'developing' countries
+
+SELECT Status, COUNT(DISTINCT Country), ROUND(AVG(Lifeexpectancy),1)
+FROM worldlifexpectancy
+GROUP BY Status
+;
+# Discovered that there are only 32 developed countries, and 161 developing countries
+# The average life expectancy results are skewed in favor for the developed countries
+
+
+# Looking for the trends between life increase and BMI by country
+
+SELECT Country, ROUND(AVG(Lifeexpectancy),1) AS Life_Exp, ROUND(AVG(BMI),1) AS BMI
+FROM worldlifexpectancy
+GROUP BY Country
+HAVING Life_Exp <>0
+AND BMI <>0
+ORDER BY BMI ASC
+;
+
+# Rolling total of Adult Mortality by country, by year
+
+SELECT Country, 
+Year, 
+Lifeexpectancy, 
+AdultMortality,
+SUM(AdultMortality) OVER(PARTITION BY Country ORDER BY Year) AS Rolling_Total
+FROM worldlifexpectancy
+WHERE Country LIKE '%United%'
+;
