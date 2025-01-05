@@ -1,0 +1,118 @@
+# US Household Income Data Cleaning
+
+SELECT * 
+FROM USHouseholdIncome
+;
+
+SELECT *
+FROM ushouseholdincome_statistics
+;
+
+SELECT COUNT(id) 
+FROM USHouseholdIncome
+;
+
+SELECT COUNT(id) 
+FROM ushouseholdincome_statistics
+;
+
+# 1.1 Identifying and removing the duplicates in the Household_Income table
+
+SELECT id, COUNT(id) 
+FROM USHouseholdIncome
+GROUP BY id
+HAVING COUNT(id) > 1
+;
+
+SELECT *
+FROM (
+SELECT row_id, id, ROW_NUMBER() OVER(PARTITION BY id ORDER BY id) row_num
+FROM USHouseholdIncome) as duplicates
+WHERE row_num > 1
+;
+
+DELETE FROM USHouseholdIncome
+WHERE row_id IN (
+	SELECT row_id
+	FROM (
+		SELECT row_id, id, ROW_NUMBER() OVER(PARTITION BY id ORDER BY id) row_num
+		FROM USHouseholdIncome) as duplicates
+	WHERE row_num > 1)
+;
+
+# 1.2 Identifying and removing the duplicates in the Household_Income_Statistics table
+
+SELECT id, COUNT(id) 
+FROM ushouseholdincome_statistics
+GROUP BY id
+HAVING COUNT(id) > 1
+;
+
+# 2. Identifying and fixing spelling errors in the 'State_Name' and 'State_ab' columns
+
+SELECT DISTINCT State_Name, COUNT(State_Name)
+FROM USHouseholdIncome
+GROUP BY State_Name
+ORDER BY 1
+;
+
+UPDATE USHouseholdIncome
+SET State_Name = 'Georgia'
+WHERE State_Name = 'georia'
+;
+
+UPDATE USHouseholdIncome
+SET State_Name = 'Alabama'
+WHERE State_Name = 'alabama'
+;
+
+SELECT DISTINCT State_ab, COUNT(State_ab)
+FROM USHouseholdIncome
+GROUP BY State_ab
+ORDER BY 1
+;
+
+# 3. Populating the null values in the 'Place' column
+
+SELECT *
+FROM USHouseholdIncome
+WHERE Place IS NULL
+;
+
+SELECT *
+FROM USHouseholdIncome
+WHERE County = 'Autauga County'
+;
+
+UPDATE USHouseholdIncome
+SET Place = 'Autaugaville'
+WHERE City = 'Vinemont'
+AND County = 'Autauga County'
+;
+
+# 4. Identifying and fixing errors or duplicates in the 'Type' column
+
+SELECT DISTINCT Type, COUNT(Type)
+FROM USHouseholdIncome
+GROUP BY Type
+;
+
+UPDATE USHouseholdIncome
+SET Type = 'Borough'
+WHERE Type = 'Boroughs'
+;
+
+
+# 5. Ckecking the zeros in the 'ALand' and 'AWater' columns
+
+SELECT DISTINCT ALand, AWater
+FROM USHouseholdIncome
+WHERE AWater = '' OR AWater = 0 OR AWater IS NULL
+;
+
+SELECT DISTINCT ALand, AWater
+FROM USHouseholdIncome
+WHERE ALand = '' OR ALand = 0 OR ALand IS NULL
+;
+
+# It is possible for some counties to have 0 area of land (water only) or 0 area of water (land only), so no there is need to remove this data
